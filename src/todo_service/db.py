@@ -11,8 +11,8 @@ def init_db():
         conn = get_connection()
         with conn.cursor() as cur:
             cur.execute("""
-                DROP TABLE tasks;
-                CREATE TABLE tasks (
+                DROP TABLE task;
+                CREATE TABLE task (
                     title TEXT NOT NULL,
                     description TEXT NOT NULL,
                     username TEXT NOT NULL
@@ -23,6 +23,7 @@ def init_db():
         print("Tabla 'tasks' creada")
     except Exception as e:
         print("Error al crear la tabla:", e)
+
 
 def get_connection():
     return psycopg2.connect(

@@ -2,7 +2,7 @@ import jwt
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
-from business_logic import get_tasks, add_task, update_task, remove_task, get_all_tasks_function
+from business_logic import get_tasks, add_task, update_task, remove_task
 from dotenv import load_dotenv
 from os import getenv
 import db
@@ -15,6 +15,7 @@ security = HTTPBearer()
 
 
 SECRET_KEY = getenv("SECRET_KEY")
+
 
 class Task(BaseModel):
     title: str
@@ -33,9 +34,6 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Token inválido")
 
-@app.get("/get_tasks")
-def get_all_tasks():
-    return get_all_tasks_function()
 
 @app.get("/tasks")
 def listar_tasks(user: str = Depends(verify_token)):

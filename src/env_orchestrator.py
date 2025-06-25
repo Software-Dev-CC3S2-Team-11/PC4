@@ -3,9 +3,10 @@ import os
 import sys
 
 ENVIRONMENTS = {
-    "db-env":"docker-compose.base.yaml",
-    "auth-env":"docker-compose.dev.yaml",
+    "db-env": "docker-compose.base.yaml",
+    "auth-env": "docker-compose.dev.yaml",
 }
+
 
 def start_env(env_name):
     if env_name not in ENVIRONMENTS:
@@ -13,8 +14,8 @@ def start_env(env_name):
         return
     docker_compose_file = ENVIRONMENTS[env_name]
     print(f"Iniciando entorno '{env_name}'")
-    subprocess.run(["docker-compose","-f",docker_compose_file,"up","-d"])
-    subprocess.run(["docker","ps"])
+    subprocess.run(["docker compose", "-f", docker_compose_file, "up", "-d"])
+    subprocess.run(["docker", "ps"])
 
 
 def stop_env(env_name):
@@ -23,13 +24,15 @@ def stop_env(env_name):
         return
     docker_compose_file = ENVIRONMENTS[env_name]
     print(f"Deteniendo entorno '{env_name}'")
-    subprocess.run(["docker-compose","-f",docker_compose_file,"down"])
-    subprocess.run(["docker","ps"])
+    subprocess.run(["docker compose", "-f", docker_compose_file, "down"])
+    subprocess.run(["docker", "ps"])
+
 
 def list_envs():
     print("Entornos disponibles:")
     for env in ENVIRONMENTS:
         print("\t-  " + env)
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 1:
