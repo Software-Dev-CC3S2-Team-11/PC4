@@ -14,7 +14,7 @@ for FILE in "${DOCKERFILES[@]}"; do
   # Silencia los resultados de "docker-compose -f  $file" redirigiendolos a /dev/null.
   # De obtener un error retorna un non-zero value
   CONTEXT_DIR=$(dirname "$FILE")
-  docker build --no-cache -f "$FILE" "$CONTEXT_DIR" > /dev/null
+  sudo docker build --no-cache -f "$FILE" "$CONTEXT_DIR" > /dev/null
 done
 
 # Validando todos los archivos docker-compose
@@ -22,7 +22,7 @@ echo "Validando archivos docker-compose..."
 for FILE in docker-compose.*.yaml; do
   [ -f "$FILE" ] || continue
   echo "  → $FILE"
-  docker-compose -f "$FILE" config > /dev/null
+  sudo docker-compose -f "$FILE" config > /dev/null
 done
 
 echo "Las verificaciones Pre-push pasaron"

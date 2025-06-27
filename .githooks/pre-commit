@@ -14,7 +14,7 @@ if [ -n "$DOCKERFILES" ]; then
     # Docker build verifica la sintaxis para cada Dockerfile indicando su carpeta. Si presenta algún error,
 	  # previene que el commit continúe
     CONTEXT_DIR=$(dirname "$FILE")
-    docker build --no-cache -f "$FILE" "$CONTEXT_DIR" > /dev/null
+    sudo docker build --no-cache -f "$FILE" "$CONTEXT_DIR" > /dev/null
   done
 fi
 
@@ -28,7 +28,7 @@ if [ -n "$COMPOSE_FILES" ]; then
     echo "  → $FILE"
 	# Silencia los resultados de "docker-compose -f  $file config" redirigiendolos a /dev/null.
 	# De obtener un error retorna un non-zero value
-    docker-compose -f "$FILE" config > /dev/null
+    sudo docker-compose -f "$FILE" config > /dev/null
   done
 fi
 
