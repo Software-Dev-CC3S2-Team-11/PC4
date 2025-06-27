@@ -1,6 +1,6 @@
 FROM python:3.11
 
-WORKDIR /service_a
+WORKDIR /auth_service
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
