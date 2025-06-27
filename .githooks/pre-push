@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Exit cuando se produzca algún error
+set -e
+
+echo "Ejecutando validaciones pre-push..."
+
+# Validando todos los Dockerfiles a través de docker build
+echo "Validando Dockerfiles..."
+# Busca en todo el repositorio los archivos que coincidan con Dockerfile
+mapfile -t DOCKERFILES < <(git ls-files '*Dockerfile' 'src/**/*.Dockerfile')
+for FILE in "${DOCKERFILES[@]}"; do
+  [ -f "$FILE" ] || continue
+  echo "  → $FILE"
+  # Silencia los resultados de "docker-compose -f  $file" redirigiendolos a /dev/null.
+  # De obtener un error retorna un non-zero value
+  CONTEXT_DIR=$(dirname "$FILE")
+  sudo docker build --no-cache -f "$FILE" "$CONTEXT_DIR" > /dev/null
+done
+
+# Validando todos los archivos docker-compose
+echo "Validando archivos docker-compose..."
+for FILE in docker-compose.*.yaml; do
+  [ -f "$FILE" ] || continue
+  echo "  → $FILE"
+  sudo docker-compose -f "$FILE" config > /dev/null
+done
+
+echo "Las verificaciones Pre-push pasaron"
+exit 0
