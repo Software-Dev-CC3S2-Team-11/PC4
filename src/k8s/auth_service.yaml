@@ -3,12 +3,14 @@ kind: Service
 metadata:
   name: auth-service
 spec:
+  type: NodePort
   selector:
     app: auth-service
   ports:
     - protocol: TCP
       port: 8000
       targetPort: 8000
+      nodePort: 30001
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -27,6 +29,7 @@ spec:
       containers:
         - name: auth-service
           image: auth_service:latest
+          imagePullPolicy: Never
           ports:
             - containerPort: 8000
           env:
