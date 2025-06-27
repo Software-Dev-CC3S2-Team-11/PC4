@@ -2,6 +2,7 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
 from os import getenv
+from fastapi import HTTPException
 
 load_dotenv()
 
@@ -19,12 +20,14 @@ cursor = connection.cursor()
 
 def get_tasks(username: str) -> list:
     try:
-        cursor.execute("SELECT * FROM Task WHERE username = %s", (username,))
+        cursor.execute(
+            "SELECT id,title,description FROM Task WHERE username = %s", (username,))
         return cursor.fetchall()
     except psycopg2.Error as e:
         print("Error al obtener las tareas", e)
         connection.rollback()
-        return []
+        raise HTTPException(
+            500, detail='Surgió un error en la base de datos al obtener las tareas')
 
 
 def add_task(username: str, title: str, description: str):
@@ -34,9 +37,17 @@ def add_task(username: str, title: str, description: str):
             (username, title, description)
         )
         connection.commit()
+
+    except psycopg2.errors.UniqueViolation:
+        connection.rollback()
+        raise HTTPException(
+            404, detail='Ya existe una tarea con ese titulo, eliga otro')
+
     except psycopg2.Error as e:
         print("Error al agregar la tarea: ", e)
         connection.rollback()
+        raise HTTPException(
+            500, detail='Surgió un error en la base de datos durante la inserción')
 
 
 def update_task(task_id: int, title: str, description: str):
@@ -46,15 +57,31 @@ def update_task(task_id: int, title: str, description: str):
             (title, description, task_id)
         )
         connection.commit()
-    except psycopg2.Error as e:
-        print("Error al actualizar la tarea:", e)
+
+        if (cursor.rowcount == 0):
+            raise HTTPException(404, detail=f'No hay una tarea con el id {id}')
+
+    except psycopg2.errors.UniqueViolation:
         connection.rollback()
+        raise HTTPException(
+            404, detail='Ya existe una tarea con ese título, eliga otro')
+    except psycopg2.Error as e:
+        connection.rollback()
+        print("Error al actualizar la tarea:", e)
+        raise HTTPException(
+            500, detail='Surgió un error en la base de datos durante la actualizacion')
 
 
 def remove_task(task_id: int):
     try:
         cursor.execute("DELETE FROM Task WHERE id = %s", (task_id,))
         connection.commit()
+
+        if (cursor.rowcount == 0):
+            raise HTTPException(
+                404, detail=f'No existe una tarea con el id {task_id}')
     except psycopg2.Error as e:
         print("Error al eliminar la tarea : ", e)
         connection.rollback()
+        raise HTTPException(
+            500, detail='Surgió un error en la base de datos durante la eliminación')
