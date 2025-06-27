@@ -1,6 +1,0 @@
-fastapi[standard]
-uvicorn[standard]
-dotenv
-psycopg2
-pydantic
-PyJWT
