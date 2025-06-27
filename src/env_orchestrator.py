@@ -4,7 +4,8 @@ import sys
 
 ENVIRONMENTS = {
     "db-env": "docker-compose.base.yaml",
-    "auth-env": "docker-compose.dev.yaml",
+    "todo-env": "docker-compose.dev.yaml",
+    "auth-env": "docker-compose.dev.yaml"
 }
 
 
@@ -12,9 +13,13 @@ def start_env(env_name):
     if env_name not in ENVIRONMENTS:
         print(f"El entorno '{env_name}' no está definido.")
         return
-    docker_compose_file = ENVIRONMENTS[env_name]
     print(f"Iniciando entorno '{env_name}'")
-    subprocess.run(["docker compose", "-f", docker_compose_file, "up", "-d"])
+    if env_name == "db-env":
+        subprocess.run(["docker-compose", "-f", ENVIRONMENTS[env_name], "up", "-d", "db"])
+    elif env_name == "auth-env":
+        subprocess.run(["docker-compose", "-f", ENVIRONMENTS[env_name], "up", "-d", "auth_service"])
+    elif env_name == "todo-env":
+        subprocess.run(["docker-compose", "-f", ENVIRONMENTS[env_name], "up", "-d", "todo_service"])
     subprocess.run(["docker", "ps"])
 
 
@@ -22,9 +27,17 @@ def stop_env(env_name):
     if env_name not in ENVIRONMENTS:
         print(f"El entorno '{env_name}' no está definido.")
         return
-    docker_compose_file = ENVIRONMENTS[env_name]
     print(f"Deteniendo entorno '{env_name}'")
-    subprocess.run(["docker compose", "-f", docker_compose_file, "down"])
+    if env_name == "db-env":
+        subprocess.run(["docker-compose", "-f", ENVIRONMENTS[env_name], "stop", "db"])
+        subprocess.run(["docker-compose", "-f", ENVIRONMENTS[env_name], "rm", "-f", "db"])
+    if env_name == "auth-env":
+        subprocess.run(["docker-compose", "-f", ENVIRONMENTS[env_name], "stop", "auth_service"])
+        subprocess.run(["docker-compose", "-f", ENVIRONMENTS[env_name], "rm", "-f", "auth_service"])
+    elif env_name == "todo-env":
+        subprocess.run(["docker-compose", "-f", ENVIRONMENTS[env_name], "stop", "todo_service"])
+        subprocess.run(["docker-compose", "-f", ENVIRONMENTS[env_name], "rm", "-f", "todo_service"])
+
     subprocess.run(["docker", "ps"])
 
 
