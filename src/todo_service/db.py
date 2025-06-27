@@ -13,9 +13,10 @@ def init_db():
             cur.execute("""
                 DROP TABLE task;
                 CREATE TABLE task (
-                    title TEXT NOT NULL,
-                    description TEXT NOT NULL,
-                    username TEXT NOT NULL
+                id SERIAL PRIMARY KEY,
+                title TEXT NOT NULL UNIQUE,
+                description TEXT NOT NULL,
+                username TEXT NOT NULL
                 );
             """)
             conn.commit()
