@@ -34,12 +34,22 @@ spec:
             - containerPort: 8002
           env:
             - name: DB_HOST
-              value: "db"
+              configMapKeyRef:
+                name: db-env-config
+                key: DB_HOST
             - name: DB_PORT
-              value: "5432"
+              configMapKeyRef:
+                name: db-env-config
+                key: DB_PORT
             - name: DB_NAME
-              value: "tododb"
+              configMapKeyRef:
+                name: db-env-config
+                key: DB_NAME
             - name: DB_USER
-              value: "user"
+              secretKeyRef:
+                name: db-env-secret
+                key: SECRET_DB_USER
             - name: DB_PASSWORD
-              value: "password"
+              secretKeyRef:
+                name: db-env-secret
+                key: SECRET_DB_PASSWORD

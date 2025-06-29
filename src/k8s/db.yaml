@@ -27,11 +27,17 @@ spec:
           image: postgres:15
           env:
             - name: POSTGRES_USER
-              value: "user"
+              secretKeyRef:
+                name: db-env-secret
+                key: SECRET_DB_USER
             - name: POSTGRES_PASSWORD
-              value: "password"
+              secretKeyRef:
+                name: db-env-secret
+                key: SECRET_DB_PASSWORD
             - name: POSTGRES_DB
-              value: "tododb"
+              configMapKeyRef:
+                name: db-env-config
+                key: DB_NAME
           ports:
             - containerPort: 5432
           volumeMounts:

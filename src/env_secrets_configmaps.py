@@ -17,7 +17,13 @@ def load_env(SERVICE_NAME):
     """
     base_dir = os.path.dirname(__file__)
     service_dir = os.path.join(base_dir, SERVICES[SERVICE_NAME])
-    env_path = os.path.join(service_dir, ".env")
+    
+    env_path = None
+    if os.path.isdir(service_dir):
+        for fname in os.listdir(service_dir):
+            if fname.endswith(".env"):
+                env_path = os.path.join(service_dir, fname)
+                break
 
     if not os.path.isfile(env_path):
         raise FileNotFoundError(f"No existe .env para '{SERVICE_NAME}' en {env_path}")

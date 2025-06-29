@@ -21,7 +21,7 @@ def start_env(env_name):
         return
     print(f"Iniciando entorno '{env_name}'")
     if env_name == "db-env":
-        subprocess.run(["docker-compose", "-f", COMPOSE_ENVIRONMENTS[env_name], "up", "-d", "db"])
+        subprocess.run(["docker-compose", "-f", COMPOSE_ENVIRONMENTS[env_name], "up", "-d"])
     elif env_name == "auth-env":
         subprocess.run(["docker-compose", "-f", COMPOSE_ENVIRONMENTS[env_name], "up", "-d", "auth_service"])
     elif env_name == "todo-env":

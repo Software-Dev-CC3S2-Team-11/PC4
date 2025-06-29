@@ -11,7 +11,6 @@ def init_db():
         conn = get_connection()
         with conn.cursor() as cur:
             cur.execute("""
-                DROP TABLE task;
                 CREATE TABLE task (
                 id SERIAL PRIMARY KEY,
                 title TEXT NOT NULL UNIQUE,

@@ -12,7 +12,7 @@ services:
       DB_USER: user
       DB_PASSWORD: password
     depends_on:
-      - db
+      - db_service
     ports:
       - "8000:8000"
 
@@ -27,7 +27,7 @@ services:
       DB_USER: user
       DB_PASSWORD: password
     depends_on:
-      - db
+      - db_service
     ports:
       - "8002:8002"
 
