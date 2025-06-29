@@ -2,7 +2,12 @@ import os
 import sys
 import base64
 
-SERVICES = ["auth_service", "todo_service"]
+# Diccionario con nombre del servicio como clave y ruta de la carpeta como valor
+SERVICES = {
+    "auth-env": "auth_service",
+    "todo-env": "todo_service",
+    "db-env": ""
+}
 
 
 def load_env(SERVICE_NAME):
@@ -11,7 +16,7 @@ def load_env(SERVICE_NAME):
     Lee el formato diccionario y mapea su contenido
     """
     base_dir = os.path.dirname(__file__)
-    service_dir = os.path.join(base_dir, SERVICE_NAME)
+    service_dir = os.path.join(base_dir, SERVICES[SERVICE_NAME])
     env_path = os.path.join(service_dir, ".env")
 
     if not os.path.isfile(env_path):
@@ -71,12 +76,12 @@ def render_configmap(name, data):
 def main():
     if len(sys.argv) != 2:
         print("Uso: python env_secrets_configmaps.py <service_name>")
-        print("Servicios disponibles:", ", ".join(SERVICES))
+        print("Servicios disponibles:", ", ".join(SERVICES.keys()))
         sys.exit(1)
     SERVICE_NAME = sys.argv[1]
     if SERVICE_NAME not in SERVICES:
         print(f"Servicio no reconocido: '{SERVICE_NAME}'")
-        print("Escoge uno de:", ", ".join(SERVICES))
+        print("Escoge uno de:", ", ".join(SERVICES.keys()))
         sys.exit(1)
 
     try:
@@ -88,13 +93,13 @@ def main():
     cm_yaml = render_configmap(f"{SERVICE_NAME}-config", env_data)
     sec_yaml = render_secret(f"{SERVICE_NAME}-secret", env_data)
 
-    out_dir = os.path.join("manifests", SERVICE_NAME)
+    out_dir = os.path.join("configmaps", SERVICE_NAME)
     os.makedirs(out_dir, exist_ok=True)
     with open(f"{out_dir}/configmap.yaml","w") as f:
         f.write(cm_yaml+"\n")
     with open(f"{out_dir}/secret.yaml","w") as f:
         f.write(sec_yaml+"\n")
-    print("Manifiestos generados en", out_dir)
+    print("Manifiestos con secrets y configmaps generados en", out_dir)
 
 
 if __name__ == "__main__":

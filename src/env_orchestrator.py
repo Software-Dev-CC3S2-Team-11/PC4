@@ -9,7 +9,7 @@ COMPOSE_ENVIRONMENTS = {
 }
 
 MINIKUBE_ENVIRONMENTS = {
-    "db-env": "k8s/db_service.yaml",
+    "db-env": "k8s/db.yaml",
     "todo-env": "k8s/todo_service.yaml",
     "auth-env": "k8s/auth_service.yaml"
 }
@@ -60,9 +60,11 @@ def deploy_service(env_name):
     print(f"Desplegando servicio en el entorno '{env_name}'")
 
     if env_name == "db-env":
+        #subprocess.run(["pyyhon", "env_secrets_configmaps.py", "auth_service"])
         subprocess.run(["kubectl", "apply", "-f", MINIKUBE_ENVIRONMENTS[env_name]])
         subprocess.run(["minikube", "service", "db","--url"])
     elif env_name == "auth-env":
+        #subprocess.run(["pyyhon", "env_secrets_configmaps.py", "todo_service"])
         subprocess.run(["kubectl", "apply", "-f", MINIKUBE_ENVIRONMENTS[env_name]])
         subprocess.run(["minikube", "service", "auth-service", "--url"])
     elif env_name == "todo-env":
