@@ -3,6 +3,6 @@ kind: ConfigMap
 metadata:
   name: db-env-config
 data:
-  DB_NAME: "tododb"
-  DB_HOST: "db"
+  DB_NAME: tododb
+  DB_HOST: db
   DB_PORT: "5432"

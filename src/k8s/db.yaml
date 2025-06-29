@@ -27,17 +27,20 @@ spec:
           image: postgres:15
           env:
             - name: POSTGRES_USER
-              secretKeyRef:
-                name: db-env-secret
-                key: SECRET_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: db-env-secret
+                  key: SECRET_DB_USER
             - name: POSTGRES_PASSWORD
-              secretKeyRef:
-                name: db-env-secret
-                key: SECRET_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-env-secret
+                  key: SECRET_DB_PASSWORD
             - name: POSTGRES_DB
-              configMapKeyRef:
-                name: db-env-config
-                key: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: db-env-config
+                  key: DB_NAME
           ports:
             - containerPort: 5432
           volumeMounts:

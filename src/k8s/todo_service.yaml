@@ -34,22 +34,27 @@ spec:
             - containerPort: 8002
           env:
             - name: DB_HOST
-              configMapKeyRef:
-                name: db-env-config
-                key: DB_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: db-env-config
+                  key: DB_HOST
             - name: DB_PORT
-              configMapKeyRef:
-                name: db-env-config
-                key: DB_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: db-env-config
+                  key: DB_PORT
             - name: DB_NAME
-              configMapKeyRef:
-                name: db-env-config
-                key: DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: db-env-config
+                  key: DB_NAME
             - name: DB_USER
-              secretKeyRef:
-                name: db-env-secret
-                key: SECRET_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: db-env-secret
+                  key: SECRET_DB_USER
             - name: DB_PASSWORD
-              secretKeyRef:
-                name: db-env-secret
-                key: SECRET_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-env-secret
+                  key: SECRET_DB_PASSWORD

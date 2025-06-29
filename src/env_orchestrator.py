@@ -1,6 +1,9 @@
 import subprocess
 import os
 import sys
+import time
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 COMPOSE_ENVIRONMENTS = {
     "db-env": "docker-compose.base.yaml",
@@ -9,11 +12,31 @@ COMPOSE_ENVIRONMENTS = {
 }
 
 MINIKUBE_ENVIRONMENTS = {
-    "db-env": "k8s/db.yaml",
-    "todo-env": "k8s/todo_service.yaml",
-    "auth-env": "k8s/auth_service.yaml"
+    "db-env": os.path.join(BASE_DIR, "k8s", "db.yaml"),
+    "todo-env": os.path.join(BASE_DIR, "k8s", "todo_service.yaml"),
+    "auth-env": os.path.join(BASE_DIR, "k8s", "auth_service.yaml")
 }
 
+def wait_for_pod_ready(label, retries=10, delay=3):
+    if (label == "db-env"):
+        label = "db"
+
+    if (label == "todo-env"):
+        label = "todo-service"
+
+    if (label == "auth-env"):
+        label = "auth-service"
+
+    for _ in range(retries):
+        result = subprocess.run(
+            ["kubectl", "get", "pods", "-l", f"app={label}",
+             "-o", "jsonpath={.items[0].status.containerStatuses[0].ready}"],
+            capture_output=True, text=True
+        )
+        if result.stdout.strip() == "true":
+            return True
+        time.sleep(delay)
+    return False
 
 def start_env(env_name):
     if env_name not in COMPOSE_ENVIRONMENTS:
@@ -60,16 +83,17 @@ def deploy_service(env_name):
     print(f"Desplegando servicio en el entorno '{env_name}'")
 
     if env_name == "db-env":
-        #subprocess.run(["pyyhon", "env_secrets_configmaps.py", "auth_service"])
         subprocess.run(["kubectl", "apply", "-f", MINIKUBE_ENVIRONMENTS[env_name]])
-        subprocess.run(["minikube", "service", "db","--url"])
+        if(wait_for_pod_ready(env_name)):
+            subprocess.run(["minikube", "service", "db","--url"])
     elif env_name == "auth-env":
-        #subprocess.run(["pyyhon", "env_secrets_configmaps.py", "todo_service"])
         subprocess.run(["kubectl", "apply", "-f", MINIKUBE_ENVIRONMENTS[env_name]])
-        subprocess.run(["minikube", "service", "auth-service", "--url"])
+        if(wait_for_pod_ready(env_name)):
+            subprocess.run(["minikube", "service", "auth-service", "--url"])
     elif env_name == "todo-env":
         subprocess.run(["kubectl", "apply", "-f", MINIKUBE_ENVIRONMENTS[env_name]])
-        subprocess.run(["minikube", "service", "todo-service", "--url"])
+        if(wait_for_pod_ready(env_name)):
+            subprocess.run(["minikube", "service", "todo-service", "--url"])
 
     print(f"Servicio en '{env_name}' desplegado correctamente.")
     subprocess.run(["minikube", "service", "list"])

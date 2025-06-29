@@ -3,4 +3,4 @@ kind: ConfigMap
 metadata:
   name: auth-env-config
 data:
-  ALGORITHM: "HS256"
+  ALGORITHM: HS256
