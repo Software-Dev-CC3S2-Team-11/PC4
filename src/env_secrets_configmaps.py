@@ -1,6 +1,8 @@
 import os
 import sys
 import base64
+import subprocess
+
 
 # Diccionario con nombre del servicio como clave y ruta de la carpeta como valor
 SERVICES = {
@@ -17,7 +19,7 @@ def load_env(SERVICE_NAME):
     """
     base_dir = os.path.dirname(__file__)
     service_dir = os.path.join(base_dir, SERVICES[SERVICE_NAME])
-    
+
     env_path = None
     if os.path.isdir(service_dir):
         for fname in os.listdir(service_dir):
@@ -26,7 +28,8 @@ def load_env(SERVICE_NAME):
                 break
 
     if not os.path.isfile(env_path):
-        raise FileNotFoundError(f"No existe .env para '{SERVICE_NAME}' en {env_path}")
+        raise FileNotFoundError(
+            f"No existe .env para '{SERVICE_NAME}' en {env_path}")
     env_data = {}
 
     with open(env_path) as env_file:
@@ -51,11 +54,11 @@ def render_secret(name, env_data):
     :return : YAML Secrets
     """
     lines = [
-      "apiVersion: v1",
-      "kind: Secret",
-      "type: Opaque",
-      f"metadata:\n  name: {name}",
-      "data:"
+        "apiVersion: v1",
+        "kind: Secret",
+        "type: Opaque",
+        f"metadata:\n  name: {name}",
+        "data:"
     ]
     for key, value in env_data.items():
         if not key.startswith("SECRET_"):
@@ -67,10 +70,10 @@ def render_secret(name, env_data):
 
 def render_configmap(name, data):
     lines = [
-      "apiVersion: v1",
-      "kind: ConfigMap",
-      f"metadata:\n  name: {name}",
-      "data:"
+        "apiVersion: v1",
+        "kind: ConfigMap",
+        f"metadata:\n  name: {name}",
+        "data:"
     ]
     for k, v in data.items():
         if k.startswith("SECRET_"):
@@ -101,11 +104,21 @@ def main():
 
     out_dir = os.path.join("configmaps", SERVICE_NAME)
     os.makedirs(out_dir, exist_ok=True)
-    with open(f"{out_dir}/configmap.yaml","w") as f:
+    with open(f"{out_dir}/configmap.yaml", "w") as f:
         f.write(cm_yaml+"\n")
-    with open(f"{out_dir}/secret.yaml","w") as f:
+    with open(f"{out_dir}/secret.yaml", "w") as f:
         f.write(sec_yaml+"\n")
     print("Manifiestos con secrets y configmaps generados en", out_dir)
+
+    print("Aplicando configmap y secret al clúster")
+    try:
+        subprocess.run(["kubectl", "apply", "-f",
+                       f"{out_dir}/configmap.yaml"], check=True)
+        subprocess.run(["kubectl", "apply", "-f",
+                       f"{out_dir}/secret.yaml"], check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Error al aplicar manifiestos: {e}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
