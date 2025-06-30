@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# Exit cuando se produzca algún error
+set -e
+
+# Encontrar Dockerfiles staged para no ejecutar el proceso con archivos no modificados
+# entre todos los archivos ya filtrados. De no encontrar archivos modificados Dockerfile,
+# procede a validar la condición
+DOCKERFILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '(^|/)Dockerfile$' || true)
+
+if [ -n "$DOCKERFILES" ]; then
+  echo "Validando archivos Dockerfiles..."
+  for FILE in $DOCKERFILES; do
+    echo "  → $FILE"
+    # Docker build verifica la sintaxis para cada Dockerfile indicando su carpeta. Si presenta algún error,
+	  # previene que el commit continúe
+    CONTEXT_DIR=$(dirname "$FILE")
+    docker build --no-cache -f "$FILE" "$CONTEXT_DIR" > /dev/null
+  done
+fi
+
+# Validar todos los docker-compose.*.yaml modificados para no ejecutar el proceso con archivos no modificados
+# entre todos los archivos ya filtrados. De no encontrar archivos modificados docker-compose.*.yaml, procede 
+# a validar la condición
+COMPOSE_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E 'docker-compose.*\.ya?ml$' || true)
+if [ -n "$COMPOSE_FILES" ]; then
+  echo "Validando archivos docker-compose..."
+  for FILE in $COMPOSE_FILES; do
+    echo "  → $FILE"
+	# Silencia los resultados de "docker-compose -f  $file config" redirigiendolos a /dev/null.
+	# De obtener un error retorna un non-zero value
+    docker-compose -f "$FILE" config > /dev/null
+  done
+fi
+
+echo "Las verificaciones Pre-commit pasaron"
+exit 0

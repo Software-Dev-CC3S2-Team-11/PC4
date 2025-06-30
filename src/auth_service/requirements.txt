@@ -1,0 +1,9 @@
+fastapi[standard]
+uvicorn[standard]
+pydantic
+python-jose
+httpx
+dotenv
+psycopg2-binary
+passlib
+bcrypt
