@@ -58,3 +58,8 @@ spec:
                 secretKeyRef:
                   name: db-env-secret
                   key: SECRET_DB_PASSWORD
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: todo-env-secret
+                  key: SECRET_KEY
