@@ -58,3 +58,13 @@ spec:
                 secretKeyRef:
                   name: db-env-secret
                   key: SECRET_DB_PASSWORD
+            - name: ALGORITHM
+              valueFrom:
+                configMapKeyRef:
+                  name: auth-env-config
+                  key: ALGORITHM
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: auth-env-secret
+                  key: SECRET_KEY
