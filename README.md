@@ -3,14 +3,18 @@
 ## Prerrequisitos
 
 Antes de empezar, asegúrate de tener instalado y en funcionamiento:
+
 - **Docker** (daemon corriendo):  
+
   ```bash
   sudo systemctl start docker  # o abre Docker Desktop en macOS/Windows
 
 ## Desarrolladores
 
 ### Instalación de Git Hooks
+
 En la raíz del proyecto encontrarás el script setup.sh, que debes ejecutar solo la primera vez para configurar los hooks:
+
 ```bash
 # Desde la carpeta raíz del repo
 bash setup.sh
@@ -22,9 +26,10 @@ Este script hará lo siguiente:
 - Configurará Git para que use .githooks/ como ruta de hooks
 
 ### Workflow
+
 #### **1.** Modificar o añadir código
 
-#### **2.** Staging:
+#### **2.** Staging
 
 ```bash
 git add <archivo(s)>
@@ -49,3 +54,9 @@ Al hacer git push, el hook pre-push:
 - Intenta construir todos los Dockerfiles trackeados.
 
 Si hay errores (p. ej. daemon detenido o sintaxis inválida), el push se bloquea.
+
+# Tests
+
+Se crearon prubeas unitarias para verificar el correcto despliegue de los servicios (estados) y pruebas end to end para verificar los endpoints de los servicios
+
+![Descripción de la imagen](https://media.discordapp.net/attachments/678404322031042590/1389135173479567411/image.png?ex=68638472&is=686232f2&hm=f03c12b1d2ace86a4b4eff496f5575e5905ecd624edb43c814754b9643941467&=&format=webp&quality=lossless&width=1860&height=205)

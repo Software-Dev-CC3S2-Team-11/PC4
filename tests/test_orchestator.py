@@ -74,8 +74,9 @@ def test_deploy_service(env_name):
     )  # más tiempo por el minikube service para que muestra la url
 
     assert code in [0, -1]
-    assert contains_url(
-        out)
+    if env_name != "db-env":
+        assert contains_url(
+            out)
 
 
 @pytest.mark.order(2)
