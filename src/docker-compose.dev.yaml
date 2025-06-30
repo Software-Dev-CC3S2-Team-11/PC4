@@ -15,6 +15,11 @@ services:
       - db_service
     ports:
       - "8000:8000"
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8000/health || exit 1" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   todo_service:
     build:
@@ -30,6 +35,11 @@ services:
       - db_service
     ports:
       - "8002:8002"
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://localhost:8002/health || exit 1" ]
+      interval: 20s
+      timeout: 5s
+      retries: 2
 
 networks:
   default:

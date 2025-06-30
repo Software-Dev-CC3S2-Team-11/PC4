@@ -2,6 +2,7 @@ import subprocess
 import os
 import sys
 import time
+from datetime import datetime, timezone
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -72,6 +73,119 @@ def stop_env(env_name):
     subprocess.run(["docker", "ps"])
 
 
+def status_env(env_name):
+    """
+    Realiza un healthcheck de los contenedores en un entorno Docker Compose.
+    Imprime el healthcheck del contenedor (healthy/unhealthy) y el tiempo que lleva en ejecución.
+    """
+    if env_name not in COMPOSE_ENVIRONMENTS:
+        print(f"El entorno '{env_name}' no está definido.")
+        return
+    
+    compose_file = os.path.join(BASE_DIR, os.pardir, COMPOSE_ENVIRONMENTS[env_name])
+    compose_file = os.path.abspath(compose_file)
+    print(f"\nHealthcheck para '{env_name}' (Docker Compose '{compose_file}')")
+
+    try:
+        ps = subprocess.run(
+            ["docker-compose", "-f", compose_file, "ps", "-q"],
+            capture_output=True, text=True, check=True
+        )
+        lines = ps.stdout.splitlines()
+        ids = []
+        for c in lines:
+            clean_line = c.strip()
+            if clean_line != "":
+                ids.append(c)
+    except subprocess.CalledProcessError:
+        ids = []
+    if not ids:
+        print("  (no hay contenedores en ejecución o falló 'ps')")
+        return
+    
+    all_healthy = True
+    for cid in ids:
+        info = subprocess.run(
+            ["docker", "inspect", cid, "--format", "{{json .State}}"],
+            capture_output=True, text=True, check=True
+        )
+        state = __import__('json').loads(info.stdout)
+        # health status or fallback
+        health = state.get("Health", {}).get("Status", "no-healthcheck")
+        started = state.get("StartedAt")
+
+        dt = datetime.fromisoformat(started.replace("Z","+00:00"))
+        uptime = datetime.now(timezone.utc) - dt
+
+        ok = (health == "healthy")
+        if not ok:
+            all_healthy = False
+        status = "healthy" if ok else f"{health}"
+
+        short_id = cid[:12]
+        uptime_text = str(uptime)
+        parts = uptime_text.split(".")
+        uptime_format = parts[0]
+
+        message = " - " + short_id + " → " + status + ", uptime " + uptime_format
+        print(message)
+
+    summary = "Todos healthy" if all_healthy else "Algunos contenedores unhealthy"
+    print("→", summary, "\n")
+
+
+def status_k8s(env_name):
+    """
+    Comprueba readiness de los Pods en Kubernetes y su uptime.
+    """
+    if env_name not in MINIKUBE_ENVIRONMENTS:
+        print(f"El entorno '{env_name}' no está definido para K8s.")
+        return
+    
+    label = {
+        "db-env":   "db",
+        "todo-env": "todo-service",
+        "auth-env": "auth-service"
+    }[env_name]
+    print(f"\nEstado K8s para '{env_name}' (app={label})")
+
+    # Obtener pods JSON
+    out = subprocess.run(
+        ["kubectl", "get", "pods", "-l", f"app={label}", "-o", "json"],
+        capture_output=True, text=True, check=True
+    ).stdout
+
+    pods = __import__('json').loads(out).get("items", [])
+    if not pods:
+        print("  (no se encontraron Pods para esa etiqueta)")
+        return
+
+    all_ready = True
+    
+    for pod in pods:
+        name = pod["metadata"]["name"]
+
+        created = pod["metadata"]["creationTimestamp"]
+        ts = datetime.fromisoformat(created.replace("Z","+00:00"))
+        up = datetime.now(timezone.utc) - ts
+
+        conds = pod["status"].get("conditions", [])
+        ready = next((c["status"] for c in conds if c["type"]=="Ready"), "Unknown")
+        ok = (ready == "True")
+        if not ok: 
+            all_ready = False
+        status = "READY" if ok else f"{ready}"
+        
+        up_text = str(up)
+        parts = up_text.split(".")
+        uptime_trimmed = parts[0]
+        message = " - " + name + " → " + status + ", uptime " + uptime_trimmed
+        print(message)
+
+    summary = "Todos READY" if all_ready else "Algunos Pods no están listos"
+    print("→", summary, "\n")
+
+
 def list_envs():
     print("Entornos disponibles:")
     for env in COMPOSE_ENVIRONMENTS:
@@ -114,10 +228,12 @@ def delete_service(env_name):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 1:
         print("Comandos:")
         print("\tstart_env <env_name> \t Inicia un conjunto de servicios Docker Compose")
         print("\tstop_env <env_name> \t Detiene y elimina los servicios de Docker Compose")
+        print("\tstatus_env <env_name> \t Comprueba healthchecks y uptime de los contenedores")
+        print("\tstatus_k8s <env_name>\tChequea readiness y uptime de Pods en Kubernetes")
         print("\tdeploy_service <env_name> \t Despliega en Kubernetes y muestra service URL")
         print("\tdelete_service <env_name> \t Elimina recursos de Kubernetes")
     command = sys.argv[1]
@@ -127,6 +243,10 @@ if __name__ == "__main__":
         start_env(env_name)
     elif command == "stop_env":
         stop_env(env_name)
+    elif command == "status_env":
+        status_env(env_name)
+    elif command == "status_k8s":
+        status_k8s(env_name)
     elif command == "list_envs":
         list_envs()
     elif command == "deploy_service":
