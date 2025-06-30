@@ -17,6 +17,7 @@ MINIKUBE_ENVIRONMENTS = {
     "auth-env": os.path.join(BASE_DIR, "k8s", "auth_service.yaml")
 }
 
+
 def wait_for_pod_ready(label, retries=10, delay=3):
     if (label == "db-env"):
         label = "db"
@@ -37,6 +38,7 @@ def wait_for_pod_ready(label, retries=10, delay=3):
             return True
         time.sleep(delay)
     return False
+
 
 def start_env(env_name):
     if env_name not in COMPOSE_ENVIRONMENTS:
@@ -84,15 +86,15 @@ def deploy_service(env_name):
 
     if env_name == "db-env":
         subprocess.run(["kubectl", "apply", "-f", MINIKUBE_ENVIRONMENTS[env_name]])
-        if(wait_for_pod_ready(env_name)):
+        if (wait_for_pod_ready(env_name)):
             subprocess.run(["minikube", "service", "db","--url"])
     elif env_name == "auth-env":
         subprocess.run(["kubectl", "apply", "-f", MINIKUBE_ENVIRONMENTS[env_name]])
-        if(wait_for_pod_ready(env_name)):
+        if (wait_for_pod_ready(env_name)):
             subprocess.run(["minikube", "service", "auth-service", "--url"])
     elif env_name == "todo-env":
         subprocess.run(["kubectl", "apply", "-f", MINIKUBE_ENVIRONMENTS[env_name]])
-        if(wait_for_pod_ready(env_name)):
+        if (wait_for_pod_ready(env_name)):
             subprocess.run(["minikube", "service", "todo-service", "--url"])
 
     print(f"Servicio en '{env_name}' desplegado correctamente.")
@@ -103,7 +105,7 @@ def delete_service(env_name):
     if env_name not in MINIKUBE_ENVIRONMENTS:
         print(f"El entorno '{env_name}' no está definido.")
         return
-    
+
     print(f"Eliminando servicio en el entorno '{env_name}'")
     subprocess.run(["kubectl", "delete", "-f", MINIKUBE_ENVIRONMENTS[env_name]])
 
@@ -111,12 +113,13 @@ def delete_service(env_name):
     subprocess.run(["minikube", "service", "list"])
 
 
-
 if __name__ == "__main__":
-    if len(sys.argv) < 1:
+    if len(sys.argv) < 2:
         print("Comandos:")
         print("\tstart_env <env_name> \t Inicia un conjunto de servicios Docker Compose")
         print("\tstop_env <env_name> \t Detiene y elimina los servicios de Docker Compose")
+        print("\tdeploy_service <env_name> \t Despliega en Kubernetes y muestra service URL")
+        print("\tdelete_service <env_name> \t Elimina recursos de Kubernetes")
     command = sys.argv[1]
     env_name = sys.argv[2] if len(sys.argv) > 2 else None
 
