@@ -28,18 +28,33 @@ spec:
     spec:
       containers:
         - name: auth-service
-          image: auth_service:latest
+          image: auth-service:latest
           imagePullPolicy: Never
           ports:
             - containerPort: 8000
           env:
             - name: DB_HOST
-              value: "db"
+              valueFrom:
+                configMapKeyRef:
+                  name: db-env-config
+                  key: DB_HOST
             - name: DB_PORT
-              value: "5432"
+              valueFrom:
+                configMapKeyRef:
+                  name: db-env-config
+                  key: DB_PORT
             - name: DB_NAME
-              value: "tododb"
+              valueFrom:
+                configMapKeyRef:
+                  name: db-env-config
+                  key: DB_NAME
             - name: DB_USER
-              value: "user"
+              valueFrom:
+                secretKeyRef:
+                  name: db-env-secret
+                  key: SECRET_DB_USER
             - name: DB_PASSWORD
-              value: "password"
+              valueFrom:
+                secretKeyRef:
+                  name: db-env-secret
+                  key: SECRET_DB_PASSWORD
