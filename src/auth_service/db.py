@@ -23,6 +23,7 @@ def init_db():
     except Exception as e:
         print("Error al crear la tabla:", e)
 
+
 def get_connection():
     return psycopg2.connect(
         host=getenv("DB_HOST"),
