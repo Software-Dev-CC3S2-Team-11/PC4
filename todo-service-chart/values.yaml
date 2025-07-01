@@ -1,0 +1,18 @@
+replicaCount: 1
+
+image:
+  repository: todo-service
+  tag: latest
+  pullPolicy: Never
+
+service:
+  type: NodePort
+  port: 8002
+  nodePort: null
+
+env:
+  DB_HOST: db
+  DB_PORT: "5432"
+  DB_NAME: tododb
+  DB_USER: user
+  DB_PASSWORD: password
