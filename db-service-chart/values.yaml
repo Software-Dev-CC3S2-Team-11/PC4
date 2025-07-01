@@ -1,0 +1,18 @@
+image:
+  repository: postgres
+  tag: "15"
+  pullPolicy: IfNotPresent
+
+service:
+  port: 5432
+
+storage:
+  mountPath: /var/lib/postgresql/data
+  size: 1Gi
+
+env:
+  DB_NAME: tododb
+  DB_HOST: db
+  DB_PORT: "5432"
+  DB_USER: user
+  DB_PASSWORD: password
