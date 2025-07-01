@@ -1,0 +1,22 @@
+replicaCount: 1
+
+image:
+  repository: auth-service
+  pullPolicy: Never
+  tag: latest
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: NodePort
+  port: 8000
+  nodePort: null
+
+env:
+  DB_HOST: db
+  DB_PORT: "5432"
+  DB_NAME: tododb
+  DB_USER: user
+  DB_PASSWORD: password
