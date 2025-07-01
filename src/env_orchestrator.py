@@ -18,6 +18,12 @@ MINIKUBE_ENVIRONMENTS = {
     "auth-env": os.path.join(BASE_DIR, "k8s", "auth_service.yaml")
 }
 
+TARGET_SERVICES = {
+  "auth-env": ["db", "auth_service"],
+  "todo-env": ["db", "todo_service"],
+  "db-env":   ["db"],
+}
+
 
 def wait_for_pod_ready(label, retries=10, delay=3):
     if (label == "db-env"):
@@ -81,7 +87,7 @@ def status_env(env_name):
     if env_name not in COMPOSE_ENVIRONMENTS:
         print(f"El entorno '{env_name}' no está definido.")
         return
-    
+
     compose_file = os.path.join(BASE_DIR, os.pardir, COMPOSE_ENVIRONMENTS[env_name])
     compose_file = os.path.abspath(compose_file)
     print(f"\nHealthcheck para '{env_name}' (Docker Compose '{compose_file}')")
@@ -102,7 +108,7 @@ def status_env(env_name):
     if not ids:
         print("  (no hay contenedores en ejecución o falló 'ps')")
         return
-    
+
     all_healthy = True
     for cid in ids:
         info = subprocess.run(
@@ -132,6 +138,23 @@ def status_env(env_name):
 
     summary = "Todos healthy" if all_healthy else "Algunos contenedores unhealthy"
     print("→", summary, "\n")
+
+    total = len(TARGET_SERVICES[env_name])
+    completed = len(ids)
+    remaining = total - completed
+    print(f"Tareas restantes: {remaining} de {total}")
+
+    # Registrar métrica para Burn-up/Burn-down
+    metrics_path = os.path.abspath(os.path.join(BASE_DIR, os.pardir, "burn_metrics.csv"))
+    header = "timestamp,environment,completed,remaining,total\n"
+    now = datetime.now(timezone.utc).isoformat()
+    entry = f"{now},{env_name},{completed},{remaining},{total}\n"
+    write_header = not os.path.exists(metrics_path)
+    with open(metrics_path, "a") as mf:
+        if write_header:
+            mf.write(header)
+        mf.write(entry)
+    print(f"📊 Burn metrics añadidas a {metrics_path}\n")
 
 
 def status_k8s(env_name):
@@ -198,6 +221,20 @@ def deploy_service(env_name):
         return
     print(f"Desplegando servicio en el entorno '{env_name}'")
 
+    # Recoge hora del último commit para Lead Time
+    try:
+        git_ts = subprocess.run(
+            ["git", "log", "-1", "--format=%ct"],
+            capture_output=True, text=True, check=True
+        ).stdout.strip()
+        commit_dt = datetime.fromtimestamp(int(git_ts), timezone.utc)
+    except Exception:
+        # si falla, usamos ahora como commit_dt (lead time cero)
+        commit_dt = datetime.now(timezone.utc)
+
+    # Recoge hora de inicio del despliegue para Cycle Time
+    deploy_start = datetime.now(timezone.utc)
+
     if env_name == "db-env":
         subprocess.run(["kubectl", "apply", "-f", MINIKUBE_ENVIRONMENTS[env_name]])
         if (wait_for_pod_ready(env_name)):
@@ -211,8 +248,31 @@ def deploy_service(env_name):
         if (wait_for_pod_ready(env_name)):
             subprocess.run(["minikube", "service", "todo-service", "--url"])
 
+    # Hora en que el servicio está listo
+    ready_dt = datetime.now(timezone.utc)
+
     print(f"Servicio en '{env_name}' desplegado correctamente.")
     subprocess.run(["minikube", "service", "list"])
+
+    # Calculo de métricas
+    lead_time_sec = int((ready_dt - commit_dt).total_seconds())
+    cycle_time_sec = int((ready_dt - deploy_start).total_seconds())
+
+    # Escribimos en metrics.csv en el root del proyecto
+    metrics_file = os.path.abspath(os.path.join(BASE_DIR, os.pardir, "metrics.csv"))
+    is_new = not os.path.exists(metrics_file)
+    with open(metrics_file, "a") as m:
+        if is_new:
+            m.write("environment,commit_time,deploy_start,ready_time,lead_time_s,cycle_time_s\n")
+        m.write(
+            f"{env_name},"
+            f"{commit_dt.isoformat()},"
+            f"{deploy_start.isoformat()},"
+            f"{ready_dt.isoformat()},"
+            f"{lead_time_sec},"
+            f"{cycle_time_sec}\n"
+        )
+    print(f"📊 Métricas registradas en {metrics_file}: lead_time={lead_time_sec}s, cycle_time={cycle_time_sec}s")
 
 
 def delete_service(env_name):
