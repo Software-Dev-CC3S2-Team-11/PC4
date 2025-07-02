@@ -39,13 +39,12 @@ jobs:
           sudo systemctl start docker
           sudo docker run hello-world
 
-      
       - name: Install Minikube
         run: |
           sudo apt-get install -y minikube
           minikube start --driver=docker
 
-      - launch-services:
+      - name: Run Application
         run: |
           chmod +x run_app.sh
           bash run_app.sh
