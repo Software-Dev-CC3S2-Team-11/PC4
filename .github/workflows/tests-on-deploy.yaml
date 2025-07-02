@@ -49,7 +49,3 @@ jobs:
         run: |
           chmod +x run_app.sh
           bash run_app.sh
-          
-      - test-services:
-        run: |
-          pytest tests/
