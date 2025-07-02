@@ -1,0 +1,55 @@
+name: CI/CD Tests on Deploy
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - feature/amir-canto/ci-cd-ga
+  pull_request:
+    branches:
+      - main
+      - develop
+      - feature/amir-canto/ci-cd-ga
+
+jobs:
+  run-application:
+    name: Deploy Services
+    runs-on: ubuntu-latest
+
+    steps:  
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+
+      - name: Install Dependencies
+        run: |
+          pip install -r src/auth_service/requirements.txt
+          pip install -r src/todo_service/requirements.txt
+
+      - name: Install Docker
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker.io
+          
+      - name: Test Docker Installation
+        run: |
+          sudo systemctl enable docker
+          sudo systemctl start docker
+          sudo docker run hello-world
+
+      
+      - name: Install Minikube
+        run: |
+          sudo apt-get install -y minikube
+          minikube start --driver=docker
+
+      - launch-services:
+        run: |
+          chmod +x run_app.sh
+          bash run_app.sh
+          
+      - test-services:
+        run: |
+          pytest tests/
