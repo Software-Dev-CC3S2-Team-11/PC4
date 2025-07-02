@@ -27,17 +27,12 @@ jobs:
         run: |
           pip install -r src/auth_service/requirements.txt
           pip install -r src/todo_service/requirements.txt
-
-      - name: Install Docker
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y docker.io
           
       - name: Test Docker Installation
         run: |
           sudo systemctl enable docker
           sudo systemctl start docker
-          sudo docker run hello-world
+          docker version
 
       - name: Install Minikube
         run: |
