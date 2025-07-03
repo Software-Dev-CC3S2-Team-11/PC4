@@ -58,7 +58,7 @@ jobs:
 
       - name: Run Tests
         env:
-          PYTHONPATH: src
+          PYTHONPATH: srcp
         run: |
           pip install pytest
           pytest tests/test_orchestrator.py
