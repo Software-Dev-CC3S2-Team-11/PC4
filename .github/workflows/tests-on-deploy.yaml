@@ -55,3 +55,8 @@ jobs:
         run: |
           chmod +x run_app.sh
           bash run_app.sh
+      
+      - name: Test Application
+        run: |
+          pytest tests/test_orchestrator.py
+          pytest tests/test_e2e.py
