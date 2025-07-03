@@ -13,8 +13,8 @@ on:
       - feature/amir-canto/ci-cd-ga
 
 jobs:
-  run-application:
-    name: Deploy Services
+  setup-os:
+    name: OS Setup
     runs-on: ubuntu-latest
 
     steps:  
@@ -40,6 +40,20 @@ jobs:
           sudo install minikube-linux-amd64 /usr/local/bin/minikube
           minikube start --driver=docker
 
+    deploy-app:
+      - name: Pass Auth Environment Variables
+      - environment: auth-service.env
+        run: |
+          echo "" > auth-service.env
+          echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> src/auth_service/.env
+          echo "ALGORITHM=${{ secrets.ALGORITHM }}" >> src/auth_service/.env
+
+      - name: Pass ToDo Environment Variables
+      - environment: todo-service.env
+        run: |
+          echo "" > todo-service.env
+          echo "SECRET_KEY=${{ secrets.SECRET_KEY }}" >> src/todo_service/.env
+        
       - name: Run Application
         run: |
           chmod +x run_app.sh
