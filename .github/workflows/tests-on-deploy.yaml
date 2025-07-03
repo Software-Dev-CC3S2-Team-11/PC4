@@ -58,5 +58,6 @@ jobs:
       
       - name: Test Application
         run: |
+          pip install pytest
           pytest tests/test_orchestrator.py
           pytest tests/test_e2e.py
