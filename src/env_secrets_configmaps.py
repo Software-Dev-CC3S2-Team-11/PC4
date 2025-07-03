@@ -102,7 +102,7 @@ def main():
     cm_yaml = render_configmap(f"{SERVICE_NAME}-config", env_data)
     sec_yaml = render_secret(f"{SERVICE_NAME}-secret", env_data)
 
-    out_dir = os.path.join("configmaps", SERVICE_NAME)
+    out_dir = os.path.join("k8s", "configmaps", SERVICE_NAME)
     os.makedirs(out_dir, exist_ok=True)
     with open(f"{out_dir}/configmap.yaml", "w") as f:
         f.write(cm_yaml+"\n")
