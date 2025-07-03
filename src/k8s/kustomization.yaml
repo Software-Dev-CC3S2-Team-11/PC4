@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1
+kind: Kustomization
+
+resources:
+  - db.yaml
+  - auth_service.yaml
+  - todo_service.yaml
+  - configmaps/db-env/configmap.yaml
+  - configmaps/db-env/secret.yaml
+  - configmaps/auth-env/configmap.yaml
+  - configmaps/auth-env/secret.yaml
+  - configmaps/todo-env/configmap.yaml
+  - configmaps/todo-env/secret.yaml
